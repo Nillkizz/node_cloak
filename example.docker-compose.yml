@@ -11,12 +11,12 @@ services:
 
   node-proxy:
     build: ./app
-    # restart: always
+    restart: always
     environment: 
       NODE_ENV: production
-      TARGET_URL: https://www.am-motion.eu/
+      TARGET_URL: http://localhost:8081/
     ports: 
-      - 8081:3000
+      - 8080:3000
 
     volumes: 
       - ./app/build/:/usr/src/app/build/
