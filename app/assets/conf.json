@@ -1,0 +1,14 @@
+{
+  "whiteListIp": [
+    "164.132.161.145"
+  ],
+  "whiteListUrlPath": {
+    "127.0.0.1:8081": [
+      "/njfgd45"
+    ]
+  },
+  "fallbackWhiteListPath": [
+    "/wp-login.php"
+  ],
+  "whiteListHost": []
+}

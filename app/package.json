@@ -1,0 +1,26 @@
+{
+  "name": "node_cloak",
+  "version": "0.0.0",
+  "description": "Cloak for googlebot access and authorized only.",
+  "main": "index.js",
+  "scripts": {
+    "watch": "tsc --watch",
+    "build": "tsc",
+    "start": "node index.js",
+    "start.dev": "nodemon"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "cookie-parser": "^1.4.6",
+    "express": "^4.17.2",
+    "http-proxy": "^1.18.1"
+  },
+  "devDependencies": {
+    "typescript": "^4.5.4",
+    "@types/cookie-parser": "^1.4.2",
+    "@types/express": "^4.17.13",
+    "@types/http-proxy": "^1.17.8",
+    "nodemon": "^2.0.15"
+  }
+}

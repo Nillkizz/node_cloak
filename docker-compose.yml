@@ -1,0 +1,22 @@
+services:
+  # nginx:
+  #   image: nginx:1.21
+  #   # restart: always
+  #   depends_on:
+  #     - node-proxy
+  #   ports:
+  #     - 0.0.0.0:80:80
+  #   volumes:
+  #     - ./configs/nginx/conf.d/:/etc/nginx/conf.d/
+
+  node-proxy:
+    build: ./app
+    # restart: always
+    environment: 
+      NODE_ENV: production
+      TARGET_URL: https://www.am-motion.eu/
+    ports: 
+      - 8081:3000
+
+    volumes: 
+      - ./app/:/usr/src/app/
