@@ -30,22 +30,35 @@ app.use((0, cookie_parser_1.default)());
 app.use(function (req, res) {
     return __awaiter(this, void 0, void 0, function* () {
         const doProxy = (req, res) => proxy.web(req, res, { target: targetUrl });
+        const unavailable = (res) => {
+            res.header("Cache-Control", "max-age=0");
+            res.header("X-Frame-Options", "DENY");
+            res.header("Status", "503 Service Temporarily Unavailable");
+            res.status(503);
+            res.send(cloakHtml);
+        };
         const conf = JSON.parse(fs_1.default.readFileSync('./assets/conf.json').toString());
         if (conf.whiteListHost.includes(req.get('host') || ''))
             doProxy(req, res);
         else
-            detectGBotHandler(req, res, conf, doProxy);
+            detectGBotHandler(req, res, conf, doProxy, unavailable);
     });
 });
 app.listen(3000);
-function detectGBotHandler(req, res, conf, cbProxy) {
+function detectGBotHandler(...[req, res, conf, cbProxy, cbUnavailable]) {
     return __awaiter(this, void 0, void 0, function* () {
-        const ip = req.get("HTTP_CF_CONNECTING_IP") || req.get("x-real-ip") || '';
+        const ip = req.get("cf-connecting-ip") || req.get("x-real-ip") || '';
         const loginCookies = Object.keys(req.cookies).map(k => k.includes("wordpress_logged_in"));
         const isWhiteIp = () => conf.whiteListIp.includes(ip);
         const hasLoginCookie = () => loginCookies.length > 0 ? loginCookies.reduce((a, b) => a || b) : false;
-        const isWhitePath = () => (conf.whiteListUrlPath[req.get('host') || ''] || conf.fallbackWhiteListPath).includes(req.path);
+        const isWhitePath = () => {
+            const local = (conf.whiteListUrlPath[req.get('host') || ''] || conf.fallbackWhiteListPath).includes(req.path);
+            console.log(req.path);
+            const isStaticfile = /\d/.test(req.path);
+            return local || isStaticfile;
+        };
         const isGBot = () => (0, cloak_1.isGoogleBot)(req, res);
+        console.log(isWhiteIp(), hasLoginCookie(), isWhitePath(), yield isGBot());
         if (isWhiteIp() || hasLoginCookie() || isWhitePath() || (yield isGBot())) {
             res.header("Cache-Control", "max-age=0");
             res.header("X-Frame-Options", "DENY");
@@ -53,11 +66,7 @@ function detectGBotHandler(req, res, conf, cbProxy) {
             cbProxy(req, res);
         }
         else {
-            res.header("Cache-Control", "max-age=0");
-            res.header("X-Frame-Options", "DENY");
-            res.header("Status", "503 Service Temporarily Unavailable");
-            res.status(503);
-            res.send(cloakHtml);
+            cbUnavailable(res);
         }
     });
 }
