@@ -49,6 +49,8 @@ function detectGBotHandler(...[req, res, conf, cbProxy, cbUnavailable]) {
     return __awaiter(this, void 0, void 0, function* () {
         const ip = req.get("cf-connecting-ip") || req.get("x-real-ip") || '';
         const loginCookies = Object.keys(req.cookies).map(k => k.includes("wordpress_logged_in"));
+        res.send([ip, req.headers]);
+        return;
         const isWhiteIp = () => conf.whiteListIp.includes(ip);
         const hasLoginCookie = () => loginCookies.length > 0 ? loginCookies.reduce((a, b) => a || b) : false;
         const isWhitePath = () => {
